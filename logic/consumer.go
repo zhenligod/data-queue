@@ -3,17 +3,15 @@ package logic
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 	"sync"
 
 	"github.com/zhenligod/thingo/logger"
 
 	"github.com/Shopify/sarama"
-	"github.com/zhenligod/my_elasticsearch/elasticsearch"
 )
 
-// KafkaLogic home logic.
+// KafkaLogic
 type KafkaLogic struct {
 	BaseLogic
 }
@@ -48,7 +46,7 @@ type ClassStaff struct {
 	IsRequired    bool        `json:"is_required"`
 }
 
-func (k *KafkaLogic) Customer(conf KafkaConf) error {
+func (k *KafkaLogic) Customer(conf KafkaConf, esConf EsConf) error {
 	address := strings.Join([]string{
 		conf.IP,
 		conf.Port,
@@ -108,17 +106,23 @@ func UpdateEsClassStaff(Value []byte) error {
 		ClassStaff.ClassId,
 		ClassStaff.StaffId,
 	}, "-")
-	log.Println(ClassStaff)
-	res, err := elasticsearch.DeleteDoc(docID)
+
+	esSvc := EsLogic{
+		BaseLogic: BaseLogic{},
+	}
+	res, err := esSvc.DeleteDoc(docID)
 	defer res.Body.Close()
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.Info("delete doc error", map[string]interface{}{
+			"trace_error": err.Error(),
+		})
 	}
-	res, err = elasticsearch.CreateDoc(docID, string(Value[:]))
+	res, err = esSvc.CreateDoc(docID, string(Value[:]))
 	defer res.Body.Close()
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.Info("create doc error", map[string]interface{}{
+			"trace_error": err.Error(),
+		})
 	}
-	log.Println(res)
 	return nil
 }
