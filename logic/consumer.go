@@ -110,14 +110,8 @@ func UpdateEsClassStaff(Value []byte) error {
 	esSvc := EsLogic{
 		BaseLogic: BaseLogic{},
 	}
-	res, err := esSvc.DeleteDoc(docID)
-	defer res.Body.Close()
-	if err != nil {
-		logger.Info("delete doc error", map[string]interface{}{
-			"trace_error": err.Error(),
-		})
-	}
-	res, err = esSvc.CreateDoc(docID, string(Value[:]))
+
+	res, err := esSvc.UpdateDoc(docID, string(Value[:]))
 	defer res.Body.Close()
 	if err != nil {
 		logger.Info("create doc error", map[string]interface{}{
